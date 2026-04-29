@@ -1,10 +1,10 @@
 
 
--- Create the database
+
 CREATE DATABASE ecommerce_db;
 USE ecommerce_db;
 
--- Table: users
+
 CREATE TABLE users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Table: products
+
 CREATE TABLE products (
     product_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE products (
     stock INT DEFAULT 0
 );
 
--- Table: orders
+
 CREATE TABLE orders (
     order_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE orders (
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
--- Table: order_items
+
 CREATE TABLE order_items (
     item_id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE order_items (
     FOREIGN KEY (product_id) REFERENCES products(product_id)
 );
 
--- VIEW: Show order summaries
+
 CREATE VIEW order_summary AS
     SELECT 
         o.order_id,
@@ -55,7 +55,7 @@ CREATE VIEW order_summary AS
         products p ON oi.product_id = p.product_id
     GROUP BY o.order_id , u.name , o.order_date;
 
--- TRIGGER: Automatically decrease stock when a new order item is inserted
+
 DELIMITER //
 CREATE TRIGGER update_stock_after_order
 AFTER INSERT ON order_items
@@ -68,7 +68,7 @@ END;
 //
 DELIMITER ;
 
--- STORED PROCEDURE: Register a new order
+
 DELIMITER //
 CREATE PROCEDURE make_order(
     IN userId INT,
@@ -78,26 +78,24 @@ CREATE PROCEDURE make_order(
 BEGIN
     DECLARE new_order_id INT;
 
-    -- 1. Create order
+    
     INSERT INTO orders (user_id) VALUES (userId);
     SET new_order_id = LAST_INSERT_ID();
 
-    -- 2. Insert product in order_items
+    
     INSERT INTO order_items (order_id, product_id, quantity)
     VALUES (new_order_id, productId, qty);
 
-    -- 3. Confirm
-    SELECT CONCAT('Order #', new_order_id, ' created successfully!') AS message;
+    
 END;
 //
 DELIMITER ;
 
--- Example data
 INSERT INTO users (name, email) VALUES ('Sophia', 'sophia@example.com');
 INSERT INTO products (name, price, stock) VALUES ('Headphones', 250.00, 10);
 
--- Run the stored procedure
+
 CALL make_order(1, 1, 2);
 
--- View order summaries
+
 SELECT * FROM order_summary;
